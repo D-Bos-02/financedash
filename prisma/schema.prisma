@@ -92,8 +92,10 @@ model FxRate {
 
 // UI preferences only; household facts live in Profile.
 model Settings {
-  id    String @id @default("singleton")
-  theme String @default("dark")
+  id         String  @id @default("singleton")
+  theme      String  @default("dark")
+  aiProvider String? // chosen in Settings › AI assistant; overrides LLM_PROVIDER. Keys stay in .env.
+  aiModel    String?
 }
 
 // Who the dashboard is for. Singleton; onboarding runs until onboardedAt is set.

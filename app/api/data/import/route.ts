@@ -260,11 +260,12 @@ export async function POST(request: NextRequest) {
   // Restore settings if present. Version 1 files kept baseCurrency in settings; it now lives in profile.
   const settings = body.settings as Row | undefined;
   if (settings?.theme) {
-    await prisma.settings.upsert({
-      where: { id: "singleton" },
-      update: { theme: settings.theme as string },
-      create: { id: "singleton", theme: settings.theme as string },
-    });
+    const data = {
+      theme: settings.theme as string,
+      aiProvider: (settings.aiProvider as string | null) ?? null,
+      aiModel: (settings.aiModel as string | null) ?? null,
+    };
+    await prisma.settings.upsert({ where: { id: "singleton" }, update: data, create: { id: "singleton", ...data } });
   }
   const profile = (body.profile as Row | null | undefined) ?? (settings?.baseCurrency ? { baseCurrency: settings.baseCurrency } : null);
   if (profile) {

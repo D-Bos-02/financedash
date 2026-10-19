@@ -143,8 +143,8 @@ async function request(p: Extract<ChatProvider, { kind: "openai" }>, body: objec
   if (withUsage && res.status === 400 && /stream_options/i.test(detail)) return request(p, body, false, attempt);
   if (res.status === 401 || res.status === 403) throw new ProviderError(`${p.label} rejected the API key. Check it in .env.`);
   if (res.status === 404) throw new ProviderError(`${p.label} doesn't know model "${p.model}" (or the address is wrong). Check LLM_MODEL and LLM_BASE_URL.`);
-  // 429 also means "out of credit" (OpenAI) or "quota exhausted" (Gemini), where waiting won't help.
-  if (res.status === 429 && /quota|credit|billing|exhausted/i.test(raw)) throw new ProviderError(`${p.label} says your account is out of credit or quota: ${detail}`);
+  // 402, and 429 with a billing message, mean the account is out of credit or quota: waiting won't help.
+  if (res.status === 402 || (res.status === 429 && /quota|credit|billing|exhausted/i.test(raw))) throw new ProviderError(`${p.label} says your account is out of credit or quota: ${detail}`);
   if (res.status === 429) throw new ProviderError(`Rate limited by ${p.label}. Try again in a minute.`);
   if (res.status === 503 || res.status === 529) throw new ProviderError(`${p.label} is overloaded right now. Try again in a few minutes.`);
   throw new ProviderError(`${p.label} error ${res.status}: ${detail || res.statusText}`);

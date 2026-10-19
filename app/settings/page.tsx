@@ -7,6 +7,7 @@ import { Input, Select } from "@/components/ui/Input";
 import Link from "next/link";
 import { BackupCard } from "@/components/settings/BackupCard";
 import { HouseholdSettings } from "@/components/settings/HouseholdSettings";
+import { AssistantSettings } from "@/components/settings/AssistantSettings";
 import { COMMON_CURRENCIES as CURRENCIES } from "@/lib/household";
 
 interface FxRate {
@@ -95,6 +96,8 @@ export default function SettingsPage() {
       <h1 className="text-xl font-bold text-zinc-100">Settings</h1>
 
       <HouseholdSettings />
+
+      <AssistantSettings />
 
       {/* FX Rates */}
       <Card>

@@ -209,7 +209,11 @@ export function Chat({
             <h1 className="text-xl font-bold text-zinc-100">Chat</h1>
             <p className="text-sm text-zinc-400 mt-0.5">
               Ask about your money. Answers use your live accounts and plan.
-              {assistant.ok && <span className="text-zinc-600"> · {assistant.name}</span>}
+              {assistant.ok && (
+                <span className="text-zinc-600">
+                  {" "}· {assistant.name} · <Link href="/settings#assistant" className="text-violet-400/80 hover:text-violet-300">Change</Link>
+                </span>
+              )}
             </p>
           </div>
           {turns.length > 0 && (
@@ -231,7 +235,8 @@ export function Chat({
             <p>{assistant.reason}</p>
             <p className="text-amber-300/80">
               Chat works with Anthropic, OpenAI, Google Gemini, OpenRouter, or a model on this computer (Ollama, LM Studio).
-              Set it up in <code className="text-amber-200">.env</code> (see the AI assistant section of <code className="text-amber-200">.env.example</code>) and restart the app.
+              Add a key to <code className="text-amber-200">.env</code> (see the AI assistant section of <code className="text-amber-200">.env.example</code>),
+              then pick the provider and model in <Link href="/settings#assistant" className="underline hover:text-amber-200">Settings › AI assistant</Link>.
             </p>
           </div>
         )}

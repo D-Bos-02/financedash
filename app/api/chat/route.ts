@@ -5,7 +5,8 @@ import { createTools, householdBrief } from "@/lib/chat/tools";
 import { SYSTEM_PROMPT, contextBlock } from "@/lib/chat/prompt";
 import { ChatEvent, ChatMessage, ProviderError, TranscriptFormat, usageCostUsd } from "@/lib/chat/types";
 import { conversationTitle } from "@/lib/chat/transcript";
-import { resolveChatProvider, transcriptFormat } from "@/lib/chat/provider";
+import { transcriptFormat } from "@/lib/chat/provider";
+import { loadChatSetup } from "@/lib/chat/setup";
 import { runAnthropicChat } from "@/lib/chat/anthropic";
 import { runOpenAIChat, type OAIMessage } from "@/lib/chat/openai";
 import { prisma } from "@/lib/prisma";
@@ -29,8 +30,8 @@ async function saveConversation(id: string | null, messages: ChatMessage[], form
 }
 
 export async function POST(request: NextRequest) {
-  const setup = resolveChatProvider(process.env);
-  if (!setup.ok) return Response.json({ error: `${setup.reason} See the AI assistant section of .env.example.` }, { status: 503 });
+  const setup = await loadChatSetup();
+  if (!setup.ok) return Response.json({ error: setup.reason }, { status: 503 });
   const { provider } = setup;
   const format = transcriptFormat(provider);
 

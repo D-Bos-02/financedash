@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Chat } from "@/components/chat/Chat";
-import { describeProvider, resolveChatProvider, transcriptFormat } from "@/lib/chat/provider";
+import { describeProvider, transcriptFormat } from "@/lib/chat/provider";
+import { loadChatSetup } from "@/lib/chat/setup";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Chat · FinanceDash" };
@@ -12,7 +13,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
     typeof id === "string" ? prisma.chatConversation.findUnique({ where: { id } }) : null,
   ]);
 
-  const setup = resolveChatProvider(process.env);
+  const setup = await loadChatSetup();
   return (
     <Chat
       // A different conversation (or a new chat) starts from a fresh state.
