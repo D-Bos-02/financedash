@@ -7,6 +7,7 @@ import { CashFlowBar } from "@/components/charts/CashFlowBar";
 import { SpendingPie } from "@/components/charts/SpendingPie";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 interface CategorySpend {
   category: string;
@@ -73,7 +74,7 @@ export default function CashFlowPage() {
   useEffect(() => {
     let alive = true;
     const fetchData = () =>
-      fetch(`/api/cash-flow?month=${month}`)
+      fetch(`${BASE_PATH}/api/cash-flow?month=${month}`)
         .then((r) => r.json())
         .then((d: CashFlowData) => { if (alive) setResult({ month, data: d }); });
     fetchData();

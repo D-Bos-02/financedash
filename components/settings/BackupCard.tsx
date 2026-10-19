@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import type { BackupStatus } from "@/lib/backup";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 export function BackupCard() {
   const [status, setStatus] = useState<BackupStatus | null>(null);
@@ -11,13 +12,13 @@ export function BackupCard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/backup").then((r) => r.json()).then(setStatus).catch(() => setError("Couldn't read backup status"));
+    fetch(`${BASE_PATH}/api/backup`).then((r) => r.json()).then(setStatus).catch(() => setError("Couldn't read backup status"));
   }, []);
 
   async function backupNow() {
     setBusy(true);
     setError("");
-    const res = await fetch("/api/backup", {
+    const res = await fetch(`${BASE_PATH}/api/backup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ force: true }),

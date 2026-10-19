@@ -7,6 +7,7 @@ import {
 } from "@/lib/household";
 import { goalFromTemplate } from "@/lib/goals";
 import { useAutosave } from "./useAutosave";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 const EMPTY: HouseholdData = { profile: null, members: [], sources: [], goals: [], accounts: [], plaidConfigured: false };
 
@@ -40,7 +41,7 @@ export function useHousehold(initial?: HouseholdData) {
   useEffect(() => {
     if (initial) return;
     let alive = true;
-    fetch("/api/household")
+    fetch(`${BASE_PATH}/api/household`)
       .then((r) => r.json())
       .then((d: HouseholdData) => {
         if (!alive) return;
@@ -71,24 +72,24 @@ export function useHousehold(initial?: HouseholdData) {
     flush: autosave.flush,
 
     async saveProfile(patch: Partial<Profile> & { onboarded?: boolean }) {
-      const saved = await attempt(() => send<Profile & { onboardedAt: string | null }>("/api/profile", "PUT", patch));
+      const saved = await attempt(() => send<Profile & { onboardedAt: string | null }>(`${BASE_PATH}/api/profile`, "PUT", patch));
       if (saved) set({ profile: { householdType: saved.householdType, baseCurrency: saved.baseCurrency, timeZone: saved.timeZone, locale: saved.locale, onboardedAt: saved.onboardedAt } });
       return saved;
     },
 
     async addMember(name: string) {
       const color = nextMemberColor(data.members.map((m) => m.color));
-      const m = await attempt(() => send<Member>("/api/members", "POST", { name, color, sortOrder: data.members.length }));
+      const m = await attempt(() => send<Member>(`${BASE_PATH}/api/members`, "POST", { name, color, sortOrder: data.members.length }));
       if (m) setData((d) => ({ ...d, members: [...d.members, { id: m.id, name: m.name, color: m.color }] }));
       return m;
     },
     updateMember(id: string, patch: Partial<Member>) {
       setData((d) => ({ ...d, members: d.members.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
-      autosave.save(`/api/members/${id}`, patch);
+      autosave.save(`${BASE_PATH}/api/members/${id}`, patch);
     },
     async removeMember(id: string) {
-      autosave.forget(`/api/members/${id}`);
-      if (await attempt(() => send("/api/members/" + id, "DELETE"))) {
+      autosave.forget(`${BASE_PATH}/api/members/${id}`);
+      if (await attempt(() => send(`${BASE_PATH}/api/members/` + id, "DELETE"))) {
         // Their income goes with them; their accounts become shared.
         setData((d) => ({
           ...d,
@@ -100,32 +101,32 @@ export function useHousehold(initial?: HouseholdData) {
     },
 
     async addSource(memberId: string | null, type: IncomeType) {
-      const row = await attempt(() => send<Parameters<typeof toIncomeSource>[0]>("/api/income-sources", "POST", { memberId, type, ...SOURCE_STARTS[type] }));
+      const row = await attempt(() => send<Parameters<typeof toIncomeSource>[0]>(`${BASE_PATH}/api/income-sources`, "POST", { memberId, type, ...SOURCE_STARTS[type] }));
       if (row) setData((d) => ({ ...d, sources: [...d.sources, toIncomeSource(row)] }));
     },
     updateSource(id: string, patch: Partial<IncomeSource>) {
       setData((d) => ({ ...d, sources: d.sources.map((s) => (s.id === id ? { ...s, ...patch } : s)) }));
-      autosave.save(`/api/income-sources/${id}`, patch);
+      autosave.save(`${BASE_PATH}/api/income-sources/${id}`, patch);
     },
     async removeSource(id: string) {
-      autosave.forget(`/api/income-sources/${id}`);
-      if (await attempt(() => send("/api/income-sources/" + id, "DELETE"))) {
+      autosave.forget(`${BASE_PATH}/api/income-sources/${id}`);
+      if (await attempt(() => send(`${BASE_PATH}/api/income-sources/` + id, "DELETE"))) {
         setData((d) => ({ ...d, sources: d.sources.filter((s) => s.id !== id) }));
       }
     },
 
     async addGoal(template: GoalTemplate, monthlySpend = 0) {
       const priority = data.goals.reduce((p, g) => Math.max(p, g.priority + 1), 0);
-      const row = await attempt(() => send<Parameters<typeof toGoal>[0]>("/api/goals", "POST", goalFromTemplate(template, monthlySpend, priority)));
+      const row = await attempt(() => send<Parameters<typeof toGoal>[0]>(`${BASE_PATH}/api/goals`, "POST", goalFromTemplate(template, monthlySpend, priority)));
       if (row) setData((d) => ({ ...d, goals: [...d.goals, toGoal(row)] }));
     },
     updateGoal(id: string, patch: Partial<Goal>) {
       setData((d) => ({ ...d, goals: d.goals.map((g) => (g.id === id ? { ...g, ...patch } : g)) }));
-      autosave.save(`/api/goals/${id}`, patch);
+      autosave.save(`${BASE_PATH}/api/goals/${id}`, patch);
     },
     async removeGoal(id: string) {
-      autosave.forget(`/api/goals/${id}`);
-      if (await attempt(() => send("/api/goals/" + id, "DELETE"))) {
+      autosave.forget(`${BASE_PATH}/api/goals/${id}`);
+      if (await attempt(() => send(`${BASE_PATH}/api/goals/` + id, "DELETE"))) {
         setData((d) => ({ ...d, goals: d.goals.filter((g) => g.id !== id) }));
       }
     },
@@ -137,12 +138,12 @@ export function useHousehold(initial?: HouseholdData) {
       if (i < 0 || j < 0 || j >= sorted.length) return;
       const reordered = sorted.map((g, k) => ({ ...g, priority: k === i ? j : k === j ? i : k }));
       setData((d) => ({ ...d, goals: reordered }));
-      for (const g of reordered) autosave.save(`/api/goals/${g.id}`, { priority: g.priority });
+      for (const g of reordered) autosave.save(`${BASE_PATH}/api/goals/${g.id}`, { priority: g.priority });
     },
 
     // After accounts change elsewhere (e.g. a Plaid link or the account form), pick up the new list.
     async reloadAccounts() {
-      const fresh = await fetch("/api/household").then((r) => r.json() as Promise<HouseholdData>).catch(() => null);
+      const fresh = await fetch(`${BASE_PATH}/api/household`).then((r) => r.json() as Promise<HouseholdData>).catch(() => null);
       if (fresh) set({ accounts: fresh.accounts });
     },
   };

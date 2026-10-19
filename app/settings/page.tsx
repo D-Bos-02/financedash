@@ -8,6 +8,7 @@ import Link from "next/link";
 import { BackupCard } from "@/components/settings/BackupCard";
 import { HouseholdSettings } from "@/components/settings/HouseholdSettings";
 import { COMMON_CURRENCIES as CURRENCIES } from "@/lib/household";
+import { BASE_PATH, DEMO } from "@/lib/demo/mode";
 
 interface FxRate {
   id: string;
@@ -29,7 +30,7 @@ export default function SettingsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch("/api/fx-rates")
+    fetch(`${BASE_PATH}/api/fx-rates`)
       .then((r) => r.json())
       .then(setFxRates)
       .catch(() => {});
@@ -42,7 +43,7 @@ export default function SettingsPage() {
     if (isNaN(rate) || rate <= 0) { setFxError("Rate must be a positive number"); return; }
     if (fxForm.fromCurrency === fxForm.toCurrency) { setFxError("Currencies must differ"); return; }
     setAddingFx(true);
-    const res = await fetch("/api/fx-rates", {
+    const res = await fetch(`${BASE_PATH}/api/fx-rates`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fromCurrency: fxForm.fromCurrency, toCurrency: fxForm.toCurrency, rate }),
@@ -57,7 +58,7 @@ export default function SettingsPage() {
   }
 
   async function deleteFxRate(id: string) {
-    await fetch(`/api/fx-rates/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_PATH}/api/fx-rates/${id}`, { method: "DELETE" });
     setFxRates((prev) => prev.filter((r) => r.id !== id));
   }
 
@@ -68,7 +69,7 @@ export default function SettingsPage() {
     setImportResult("");
     try {
       const text = await file.text();
-      const res = await fetch("/api/data/import", {
+      const res = await fetch(`${BASE_PATH}/api/data/import`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: text,
@@ -174,7 +175,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* Data */}
-      <BackupCard />
+      {!DEMO && <BackupCard />}
 
       <Card>
         <CardHeader><CardTitle>Data</CardTitle></CardHeader>
@@ -186,7 +187,7 @@ export default function SettingsPage() {
             </p>
             {/* A plain download link: the route sends the file as an attachment. */}
             <a
-              href="/api/data/export"
+              href={`${BASE_PATH}/api/data/export`}
               download
               className="inline-flex items-center gap-2 font-medium rounded-lg transition-colors bg-zinc-700 hover:bg-zinc-600 text-zinc-100 px-4 py-2 text-sm"
             >

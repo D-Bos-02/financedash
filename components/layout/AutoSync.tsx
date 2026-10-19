@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 const SESSION_KEY = "plaid-synced";
 
@@ -33,10 +34,10 @@ export function AutoSync() {
     (async () => {
       try {
         const [res, fx] = await Promise.all([
-          fetch("/api/plaid/sync", { method: "POST" }),
-          fetch("/api/fx-rates/refresh", { method: "POST" }).catch(() => null),
+          fetch(`${BASE_PATH}/api/plaid/sync`, { method: "POST" }),
+          fetch(`${BASE_PATH}/api/fx-rates/refresh`, { method: "POST" }).catch(() => null),
           // Skips itself if a backup was made in the last day.
-          fetch("/api/backup", { method: "POST" }).catch(() => null),
+          fetch(`${BASE_PATH}/api/backup`, { method: "POST" }).catch(() => null),
         ]);
         if (!res.ok) {
           if (fx?.ok) router.refresh();

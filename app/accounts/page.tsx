@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { PlaidConnections } from "@/components/accounts/PlaidConnections";
 import { AccountForm } from "@/components/accounts/AccountForm";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 // Manual balances go stale, so show how long ago each was last updated.
 function updatedAgo(iso: string): string {
@@ -19,7 +20,7 @@ function updatedAgo(iso: string): string {
 
 async function fetchPage() {
   const [accounts, members, settings] = await Promise.all(
-    ["/api/accounts", "/api/members", "/api/settings"].map((u) => fetch(u).then((r) => r.json()))
+    [`${BASE_PATH}/api/accounts`, `${BASE_PATH}/api/members`, `${BASE_PATH}/api/settings`].map((u) => fetch(u).then((r) => r.json()))
   );
   return { accounts: accounts as Account[], members: members as Member[], baseCurrency: (settings.baseCurrency as string) ?? "USD" };
 }
@@ -45,7 +46,7 @@ export default function AccountsPage() {
 
   async function deleteAccount(id: string) {
     if (!confirm("Archive this account?")) return;
-    await fetch(`/api/accounts/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_PATH}/api/accounts/${id}`, { method: "DELETE" });
     setAccounts((prev) => prev.filter((a) => a.id !== id));
   }
 

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { ChatEvent, ChatMessage, TranscriptFormat, WEEKLY_CHECKIN_PROMPT } from "@/lib/chat/types";
 import { ModelPicker, type AssistantState } from "./ModelPicker";
 import { Turn, transcriptToTurns } from "@/lib/chat/transcript";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 const TOOL_LABELS: Record<string, string> = {
   get_accounts: "Checking balances",
@@ -115,7 +116,7 @@ export function Chat({
   }
 
   async function refreshConversations() {
-    const res = await fetch("/api/chat/conversations").catch(() => null);
+    const res = await fetch(`${BASE_PATH}/api/chat/conversations`).catch(() => null);
     if (res?.ok) setConversations(await res.json());
   }
 
@@ -128,7 +129,7 @@ export function Chat({
     setTurns((prev) => [...prev, { role: "user", text: question, tools: [] }, { role: "assistant", text: "", tools: [] }]);
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(`${BASE_PATH}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [...history, { role: "user", content: question }], conversationId }),
@@ -176,7 +177,7 @@ export function Chat({
 
   async function deleteConversation(id: string) {
     if (!confirm("Delete this chat?")) return;
-    await fetch(`/api/chat/conversations/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_PATH}/api/chat/conversations/${id}`, { method: "DELETE" });
     setConversations((prev) => prev.filter((c) => c.id !== id));
     if (id === conversationId) router.push("/chat");
   }

@@ -7,6 +7,7 @@ import { COMMON_CURRENCIES } from "@/lib/household";
 import { ACCOUNT_TYPES } from "@/lib/categories";
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 export function AccountForm({
   initial,
@@ -44,7 +45,7 @@ export function AccountForm({
     setError("");
     try {
       const method = initial?.id ? "PUT" : "POST";
-      const url = initial?.id ? `/api/accounts/${initial.id}` : "/api/accounts";
+      const url = initial?.id ? `${BASE_PATH}/api/accounts/${initial.id}` : `${BASE_PATH}/api/accounts`;
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },

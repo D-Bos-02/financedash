@@ -17,6 +17,7 @@ import { suggestLifestyle } from "@/lib/goals";
 import type { PlannerInputs } from "@/lib/planner";
 import { ACCOUNT_TYPES } from "@/lib/categories";
 import { makeMoney, type HouseholdData, type Profile } from "@/lib/household";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 const STEPS = ["Basics", "Income", "Accounts", "Goals", "Budget"] as const;
 
@@ -83,7 +84,7 @@ export function SetupWizard({ initial, planner }: {
   async function finish() {
     setBusy(true);
     await h.flush();
-    const res = await fetch("/api/planner", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(effectiveBudget) });
+    const res = await fetch(`${BASE_PATH}/api/planner`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(effectiveBudget) });
     if (!res.ok) {
       setNotice("Couldn't save the budget. Try again.");
       setBusy(false);
@@ -112,7 +113,7 @@ export function SetupWizard({ initial, planner }: {
     setBusy(true);
     setNotice("");
     try {
-      const res = await fetch("/api/data/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: await file.text() });
+      const res = await fetch(`${BASE_PATH}/api/data/import`, { method: "POST", headers: { "Content-Type": "application/json" }, body: await file.text() });
       const body = await res.json();
       if (!res.ok || body.error) throw new Error(body.error ?? "Import failed");
       // A newer backup finishes setup by itself; an older one reopens the wizard with its people filled in.

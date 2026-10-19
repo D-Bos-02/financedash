@@ -5,6 +5,7 @@ import { Input, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { DEFAULT_CATEGORIES } from "@/lib/categories";
 import { Account, Transaction } from "@/types";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 interface TransactionFormProps {
   accounts: Account[];
@@ -33,7 +34,7 @@ export function TransactionForm({ accounts, initial, onSave, onCancel }: Transac
     setSaving(true);
     try {
       const method = initial?.id ? "PUT" : "POST";
-      const url = initial?.id ? `/api/transactions/${initial.id}` : "/api/transactions";
+      const url = initial?.id ? `${BASE_PATH}/api/transactions/${initial.id}` : `${BASE_PATH}/api/transactions`;
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },

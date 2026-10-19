@@ -14,6 +14,7 @@ import {
   parseRows,
 } from "@/lib/csv-parser";
 import { Account } from "@/types";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 type Stage = "upload" | "mapping" | "preview";
 
@@ -111,7 +112,7 @@ export function CsvImporter({ accounts, onComplete, onCancel }: CsvImporterProps
     setImporting(true);
     setError("");
     try {
-      const res = await fetch("/api/transactions/import", {
+      const res = await fetch(`${BASE_PATH}/api/transactions/import`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accountId, rows: rawRows, mapping }),

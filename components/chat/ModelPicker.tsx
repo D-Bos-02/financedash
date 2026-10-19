@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { ProviderOption, SavedChoice } from "@/lib/chat/provider";
 import type { TranscriptFormat } from "@/lib/chat/types";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 export interface AssistantState {
   providers: ProviderOption[];
@@ -18,11 +19,11 @@ const field = "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 te
 const OTHER = "__other__";
 
 async function fetchState(): Promise<AssistantState> {
-  return fetch("/api/assistant").then((r) => r.json());
+  return fetch(`${BASE_PATH}/api/assistant`).then((r) => r.json());
 }
 
 async function fetchModels(provider: string): Promise<Models> {
-  const res = await fetch(`/api/assistant/models?provider=${encodeURIComponent(provider)}`);
+  const res = await fetch(`${BASE_PATH}/api/assistant/models?provider=${encodeURIComponent(provider)}`);
   const body = await res.json().catch(() => ({}));
   return res.ok ? { status: "ok", models: body.models ?? [] } : { status: "error", error: body.error ?? `Request failed (${res.status})` };
 }
@@ -97,7 +98,7 @@ export function ModelPicker({ label, inline = false, disabled = false, onSaved }
 
   async function save() {
     setSaving(true);
-    const res = await fetch("/api/assistant", {
+    const res = await fetch(`${BASE_PATH}/api/assistant`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ provider: provider || null, model: model.trim() || null }),

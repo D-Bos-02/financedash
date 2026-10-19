@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { Card } from "@/components/ui/Card";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 type ModalMode = "new" | "edit" | "csv" | null;
 
@@ -111,7 +112,7 @@ async function fetchTransactions(filters: Filters) {
   if (filters.to) params.set("to", filters.to);
   if (filters.excludeTransfers) params.set("excludeTransfers", "1");
   params.set("limit", "50");
-  const res = await fetch(`/api/transactions?${params}`);
+  const res = await fetch(`${BASE_PATH}/api/transactions?${params}`);
   return res.json() as Promise<{ transactions: Transaction[]; total: number; spent?: number; received?: number }>;
 }
 
@@ -144,7 +145,7 @@ function TransactionsView({ initial }: { initial: Filters }) {
   }, [filters, apply]);
 
   useEffect(() => {
-    fetch("/api/accounts").then((r) => r.json()).then(setAccounts);
+    fetch(`${BASE_PATH}/api/accounts`).then((r) => r.json()).then(setAccounts);
   }, []);
 
   useEffect(() => {
@@ -159,7 +160,7 @@ function TransactionsView({ initial }: { initial: Filters }) {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this transaction?")) return;
-    await fetch(`/api/transactions/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_PATH}/api/transactions/${id}`, { method: "DELETE" });
     setTransactions((prev) => prev.filter((t) => t.id !== id));
     setTotal((prev) => prev - 1);
   }
@@ -174,7 +175,7 @@ function TransactionsView({ initial }: { initial: Filters }) {
 
   async function handleCategoryChange(id: string, category: string) {
     setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, category } : t)));
-    await fetch(`/api/transactions/${id}`, {
+    await fetch(`${BASE_PATH}/api/transactions/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ category }),

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import type { Member } from "@/lib/household";
 import { PlaidSetupGuide } from "./PlaidSetupGuide";
+import { BASE_PATH, DEMO, REPO_URL } from "@/lib/demo/mode";
 
 const TRIAL_ITEM_LIMIT = 10;
 
@@ -61,8 +62,28 @@ function LinkLauncher({ token, onSuccess, onExit }: {
   return null;
 }
 
+// The demo has no bank keys, so it explains bank sync instead.
+export function PlaidConnections(props: { onChange: () => void; members: Member[]; setupOpen?: boolean }) {
+  return DEMO ? <DemoBankSync /> : <LivePlaidConnections {...props} />;
+}
+
+function DemoBankSync() {
+  return (
+    <Card className="space-y-1">
+      <p className="text-sm font-medium text-zinc-100">Connect your bank automatically</p>
+      <p className="text-sm text-zinc-400">
+        Bank sync is off in this demo, and every account here is made up. In your own copy, FinanceDash pulls in balances and
+        transactions through Plaid, and walks you through getting free Plaid keys in about five minutes.
+      </p>
+      <a href={`${REPO_URL}#quick-start`} target="_blank" rel="noreferrer" className="inline-block text-sm text-violet-400 hover:text-violet-300">
+        Set up your own copy →
+      </a>
+    </Card>
+  );
+}
+
 // setupOpen: when bank sync isn't set up yet, show the setup steps expanded (the wizard) or collapsed (Accounts).
-export function PlaidConnections({ onChange, members, setupOpen = false }: { onChange: () => void; members: Member[]; setupOpen?: boolean }) {
+function LivePlaidConnections({ onChange, members, setupOpen = false }: { onChange: () => void; members: Member[]; setupOpen?: boolean }) {
   const [data, setData] = useState<ItemsResponse | null>(null);
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [updateItemId, setUpdateItemId] = useState<string | null>(null);
@@ -73,13 +94,13 @@ export function PlaidConnections({ onChange, members, setupOpen = false }: { onC
   const memberId = chosenOwner ?? members[0]?.id ?? "";
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/plaid/items");
+    const res = await fetch(`${BASE_PATH}/api/plaid/items`);
     setData(await res.json());
   }, []);
 
   // State is set when the data arrives, not during the effect itself.
   useEffect(() => {
-    fetch("/api/plaid/items").then((r) => r.json()).then(setData);
+    fetch(`${BASE_PATH}/api/plaid/items`).then((r) => r.json()).then(setData);
   }, []);
 
   const onSuccess = useCallback(
@@ -88,11 +109,11 @@ export function PlaidConnections({ onChange, members, setupOpen = false }: { onC
       setBusy(true);
       try {
         if (updateItemId) {
-          const res = await fetch(`/api/plaid/items/${updateItemId}`, { method: "PATCH" });
+          const res = await fetch(`${BASE_PATH}/api/plaid/items/${updateItemId}`, { method: "PATCH" });
           const body = await res.json();
           setMessage(body.sync ? summarise([body.sync]) : body.error);
         } else {
-          const res = await fetch("/api/plaid/exchange", {
+          const res = await fetch(`${BASE_PATH}/api/plaid/exchange`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ publicToken, institution: metadata.institution, memberId }),
@@ -125,7 +146,7 @@ export function PlaidConnections({ onChange, members, setupOpen = false }: { onC
     if (!token) return;
     setBusy(true);
     try {
-      const res = await fetch("/api/plaid/recover", {
+      const res = await fetch(`${BASE_PATH}/api/plaid/recover`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ linkToken: token, memberId }),
@@ -161,7 +182,7 @@ export function PlaidConnections({ onChange, members, setupOpen = false }: { onC
     }
     setMessage("");
     setUpdateItemId(itemId ?? null);
-    const res = await fetch("/api/plaid/link-token", {
+    const res = await fetch(`${BASE_PATH}/api/plaid/link-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(itemId ? { itemId } : { memberId }),
@@ -174,7 +195,7 @@ export function PlaidConnections({ onChange, members, setupOpen = false }: { onC
   async function syncAll() {
     setBusy(true);
     setMessage("");
-    const res = await fetch("/api/plaid/sync", { method: "POST" });
+    const res = await fetch(`${BASE_PATH}/api/plaid/sync`, { method: "POST" });
     const body = await res.json();
     setMessage(res.ok ? summarise(body.results) || "Nothing to sync." : body.error);
     setBusy(false);
@@ -188,7 +209,7 @@ export function PlaidConnections({ onChange, members, setupOpen = false }: { onC
         ? `Disconnect ${item.institutionName}? Its accounts and transactions are kept as manual.\n\nThis will NOT free up a Trial Item slot.`
         : `Disconnect ${item.institutionName}? Its Sandbox test accounts and transactions will be deleted.`;
     if (!confirm(msg)) return;
-    await fetch(`/api/plaid/items/${item.id}`, { method: "DELETE" });
+    await fetch(`${BASE_PATH}/api/plaid/items/${item.id}`, { method: "DELETE" });
     load();
     onChange();
   }
@@ -200,7 +221,7 @@ export function PlaidConnections({ onChange, members, setupOpen = false }: { onC
       <PlaidSetupGuide
         defaultOpen={setupOpen}
         onCheck={async () => {
-          const fresh: ItemsResponse = await fetch("/api/plaid/items").then((r) => r.json());
+          const fresh: ItemsResponse = await fetch(`${BASE_PATH}/api/plaid/items`).then((r) => r.json());
           if (fresh.configured) setData(fresh);
           return fresh.configured;
         }}

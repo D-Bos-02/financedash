@@ -13,6 +13,7 @@ import { ProjectionTab } from "./ProjectionTab";
 import { BudgetTab } from "./BudgetTab";
 import { HomePurchaseTab } from "./HomePurchaseTab";
 import { GoalsTab } from "./GoalsTab";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 // Each tab gets the planner view (values in use) plus the raw data and the update functions.
 export type TabProps = PlannerView & {
@@ -64,17 +65,17 @@ export function PortfolioPlanner({
   function update(patch: Partial<PlannerInputs>) {
     const next = { ...inputs, ...patch };
     setInputs(next);
-    save("/api/planner", next, true);
+    save(`${BASE_PATH}/api/planner`, next, true);
   }
 
   function updateSource(id: string, patch: Partial<IncomeSource>) {
     setSources((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
-    save(`/api/income-sources/${id}`, patch);
+    save(`${BASE_PATH}/api/income-sources/${id}`, patch);
   }
 
   function updateGoal(id: string, patch: Partial<Goal>) {
     setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...patch } : g)));
-    save(`/api/goals/${id}`, patch);
+    save(`${BASE_PATH}/api/goals/${id}`, patch);
   }
 
   function reset() {

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { BudgetCategoryBar } from "@/components/charts/BudgetCategoryBar";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 interface BudgetWithSpend extends Budget {
   spent: number;
@@ -27,7 +28,7 @@ function BudgetForm({ onSave, onCancel }: { onSave: (b: Budget) => void; onCance
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const res = await fetch("/api/budgets", {
+    const res = await fetch(`${BASE_PATH}/api/budgets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...form, amount: parseFloat(form.amount) }),
@@ -54,9 +55,9 @@ async function fetchPage() {
   const now = new Date();
   const yearAgo = monthsAgo(11);
   const [budgetsRes, txRes, annualTxRes] = await Promise.all([
-    fetch("/api/budgets"),
-    fetch(`/api/transactions?from=${startOfMonth(now).toISOString()}&to=${endOfMonth(now).toISOString()}&limit=500`),
-    fetch(`/api/transactions?from=${startOfMonth(yearAgo).toISOString()}&to=${endOfMonth(now).toISOString()}&limit=2000`),
+    fetch(`${BASE_PATH}/api/budgets`),
+    fetch(`${BASE_PATH}/api/transactions?from=${startOfMonth(now).toISOString()}&to=${endOfMonth(now).toISOString()}&limit=500`),
+    fetch(`${BASE_PATH}/api/transactions?from=${startOfMonth(yearAgo).toISOString()}&to=${endOfMonth(now).toISOString()}&limit=2000`),
   ]);
   const allBudgets: Budget[] = await budgetsRes.json();
   const { transactions } = await txRes.json();
@@ -120,7 +121,7 @@ export default function BudgetsPage() {
   useEffect(() => { fetchPage().then(apply); }, [apply]);
 
   async function deleteBudget(id: string) {
-    await fetch(`/api/budgets/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_PATH}/api/budgets/${id}`, { method: "DELETE" });
     setBudgets((prev) => prev.filter((b) => b.id !== id));
   }
 

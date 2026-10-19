@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { DEFAULT_CATEGORIES, MONEY_MOVEMENT } from "@/lib/categories";
 import { formatCurrency } from "@/lib/formatters";
 import Link from "next/link";
+import { BASE_PATH } from "@/lib/demo/mode";
 
 interface Rule {
   id: string;
@@ -31,7 +32,7 @@ function RuleForm({ initial, onSave, onCancel }: { initial?: string; onSave: (r:
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const res = await fetch("/api/rules", {
+    const res = await fetch(`${BASE_PATH}/api/rules`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...form, priority: parseInt(form.priority) }),
@@ -70,7 +71,7 @@ function RuleForm({ initial, onSave, onCancel }: { initial?: string; onSave: (r:
 }
 
 async function fetchPage() {
-  const [rules, uncat] = await Promise.all(["/api/rules", "/api/transactions/uncategorized"].map((u) => fetch(u).then((r) => r.json())));
+  const [rules, uncat] = await Promise.all([`${BASE_PATH}/api/rules`, `${BASE_PATH}/api/transactions/uncategorized`].map((u) => fetch(u).then((r) => r.json())));
   return { rules, uncat };
 }
 
@@ -102,14 +103,14 @@ export default function RulesPage() {
   useEffect(() => { fetchPage().then(apply); }, [apply]);
 
   async function deleteRule(id: string) {
-    await fetch(`/api/rules/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_PATH}/api/rules/${id}`, { method: "DELETE" });
     setRules((prev) => prev.filter((r) => r.id !== id));
   }
 
   async function reapplyRules() {
     setReapplying(true);
     setReapplyResult("");
-    const res = await fetch("/api/transactions/recategorize", { method: "POST" });
+    const res = await fetch(`${BASE_PATH}/api/transactions/recategorize`, { method: "POST" });
     const { updated, total } = await res.json();
     setReapplyResult(`Updated ${updated} of ${total} transactions.`);
     setReapplying(false);
@@ -118,7 +119,7 @@ export default function RulesPage() {
   }
 
   async function refreshUncategorized() {
-    const uncatRes = await fetch("/api/transactions/uncategorized");
+    const uncatRes = await fetch(`${BASE_PATH}/api/transactions/uncategorized`);
     const uncatData = await uncatRes.json();
     setUncategorized(uncatData.merchants ?? []);
     setUncatTotal(uncatData.total ?? 0);
@@ -131,7 +132,7 @@ export default function RulesPage() {
     if (!choice) return;
     const transfer = choice === "__transfer__";
     setSavingQuick(merchant);
-    const res = await fetch("/api/rules", {
+    const res = await fetch(`${BASE_PATH}/api/rules`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -143,7 +144,7 @@ export default function RulesPage() {
     });
     const newRule = await res.json();
     setRules((prev) => [newRule, ...prev]);
-    await fetch("/api/transactions/recategorize", { method: "POST" });
+    await fetch(`${BASE_PATH}/api/transactions/recategorize`, { method: "POST" });
     await refreshUncategorized();
     setSavingQuick(null);
   }
@@ -174,7 +175,7 @@ export default function RulesPage() {
 
   async function seedDefaults() {
     for (const rule of DEFAULT_RULES) {
-      const res = await fetch("/api/rules", {
+      const res = await fetch(`${BASE_PATH}/api/rules`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(rule),
