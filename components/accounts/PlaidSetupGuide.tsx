@@ -81,22 +81,31 @@ export function PlaidSetupGuide({ defaultOpen = false, onCheck }: { defaultOpen?
       {open && (
         <>
           {env === "sandbox" ? (
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-xs text-zinc-400 space-y-1.5">
-              <>
-                <p>
-                  <span className="text-zinc-200">Signing in to a test bank:</span> pick any bank in the Plaid window and use{" "}
-                  <code className="text-zinc-300">user_good</code> / <code className="text-zinc-300">pass_good</code>.
+            // Prominent, but blue rather than amber: advice, not danger.
+            <div className="flex gap-3 rounded-lg border border-sky-500/50 bg-sky-500/10 px-4 py-3">
+              <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0 text-sky-400 mt-0.5">
+                <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clipRule="evenodd" />
+              </svg>
+              <div className="min-w-0 space-y-2">
+                <p className="text-sm font-semibold text-sky-200">Start with Sandbox, Plaid&apos;s test banks</p>
+                <ul className="list-disc pl-4 space-y-1 text-xs text-sky-100/90">
+                  <li>
+                    Plaid&apos;s free trial allows <strong className="text-sky-50">10 real bank connections, ever</strong>, and{" "}
+                    <strong className="text-sky-50">removing one doesn&apos;t give its slot back</strong>. Sandbox doesn&apos;t count toward that limit.
+                  </li>
+                  <li>Each login to a bank counts as one connection, even if it brings in several accounts.</li>
+                  <li>Get comfortable in Sandbox before using up real connections.</li>
+                </ul>
+                <p className="flex flex-wrap items-center gap-1.5 text-xs text-sky-100/90">
+                  <span className="font-semibold text-sky-50">Test bank sign-in:</span> pick any bank in the Plaid window, then use
+                  <code className="rounded bg-zinc-950/60 border border-sky-500/30 px-1.5 py-0.5 text-sky-100">user_good</code>/
+                  <code className="rounded bg-zinc-950/60 border border-sky-500/30 px-1.5 py-0.5 text-sky-100">pass_good</code>
                 </p>
-                <p>
-                  <span className="text-zinc-200">Why Sandbox first:</span> Plaid&apos;s free trial allows 10 real bank connections, ever. Removing
-                  one doesn&apos;t give its slot back. Each login to a bank counts as one connection, even if it brings in several accounts.
-                  Get comfortable in Sandbox, which doesn&apos;t count toward that limit, before using up real ones.
+                <p className="text-xs text-sky-100/80">
+                  <span className="font-semibold text-sky-50">Ready for your real bank?</span> Request Production access in the Plaid dashboard.
+                  Once it&apos;s approved, come back here, choose Production, and swap in the new lines.
                 </p>
-                <p>
-                  <span className="text-zinc-200">Moving to your real bank later:</span> request Production access in the Plaid dashboard. Once it&apos;s
-                  approved, come back here, choose Production, and swap in the new lines.
-                </p>
-              </>
+              </div>
             </div>
           ) : (
             // Production connections are permanent and limited, so this is a warning, not a note.
