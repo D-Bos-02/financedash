@@ -80,6 +80,32 @@ export function PlaidSetupGuide({ defaultOpen = false, onCheck }: { defaultOpen?
 
       {open && (
         <>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-xs text-zinc-400 space-y-1.5">
+            {env === "sandbox" ? (
+              <>
+                <p>
+                  <span className="text-zinc-200">Signing in to a test bank:</span> pick any bank in the Plaid window and use{" "}
+                  <code className="text-zinc-300">user_good</code> / <code className="text-zinc-300">pass_good</code>.
+                </p>
+                <p>
+                  <span className="text-zinc-200">Why Sandbox first:</span> Plaid&apos;s free trial allows 10 real bank connections, ever. Removing
+                  one doesn&apos;t give its slot back. Each login to a bank counts as one connection, even if it brings in several accounts.
+                  Get comfortable in Sandbox, which doesn&apos;t count toward that limit, before using up real ones.
+                </p>
+                <p>
+                  <span className="text-zinc-200">Moving to your real bank later:</span> request Production access in the Plaid dashboard. Once it&apos;s
+                  approved, come back here, choose Production, and swap in the new lines.
+                </p>
+              </>
+            ) : (
+              <p>
+                <span className="text-zinc-200">Before you connect:</span> Plaid&apos;s free trial allows 10 bank connections in total, and removing one
+                doesn&apos;t give its slot back. Each login to a bank counts once, however many accounts it brings in. If you haven&apos;t yet, try
+                Sandbox first. Connect each bank only once, and use Reconnect (not a new connection) if a login stops working.
+              </p>
+            )}
+          </div>
+
           <ol className="space-y-5">
             <Step n={1} title="Create a free Plaid account">
               <p className="text-xs text-zinc-500">
@@ -144,32 +170,6 @@ export function PlaidSetupGuide({ defaultOpen = false, onCheck }: { defaultOpen?
               </div>
             </Step>
           </ol>
-
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-xs text-zinc-400 space-y-1.5">
-            {env === "sandbox" ? (
-              <>
-                <p>
-                  <span className="text-zinc-200">Signing in to a test bank:</span> pick any bank in the Plaid window and use{" "}
-                  <code className="text-zinc-300">user_good</code> / <code className="text-zinc-300">pass_good</code>.
-                </p>
-                <p>
-                  <span className="text-zinc-200">Why Sandbox first:</span> Plaid&apos;s free trial allows 10 real bank connections, ever. Removing
-                  one doesn&apos;t give its slot back. Each login to a bank counts as one connection, even if it brings in several accounts.
-                  Get comfortable in Sandbox, which doesn&apos;t count toward that limit, before using up real ones.
-                </p>
-                <p>
-                  <span className="text-zinc-200">Moving to your real bank later:</span> request Production access in the Plaid dashboard. Once it&apos;s
-                  approved, come back here, choose Production, and swap in the new lines.
-                </p>
-              </>
-            ) : (
-              <p>
-                <span className="text-zinc-200">Before you connect:</span> Plaid&apos;s free trial allows 10 bank connections in total, and removing one
-                doesn&apos;t give its slot back. Each login to a bank counts once, however many accounts it brings in. If you haven&apos;t yet, try
-                Sandbox first. Connect each bank only once, and use Reconnect (not a new connection) if a login stops working.
-              </p>
-            )}
-          </div>
 
           {!defaultOpen && (
             <button type="button" onClick={() => setOpen(false)} className="text-xs text-zinc-500 hover:text-zinc-300">Hide</button>
