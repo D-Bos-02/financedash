@@ -116,7 +116,37 @@ export function PlaidConnections({ onChange, members, setupOpen = false }: { onC
     [updateItemId, memberId, load, onChange]
   );
 
-  const onExit = useCallback(() => { setLinkToken(null); setUpdateItemId(null); }, []);
+  // Closing Link after the bank login succeeded (e.g. on Plaid's final "Share data"
+  // pane) still creates an Item at Plaid, so check the session and keep anything it connected.
+  const onExit = useCallback(async () => {
+    const token = linkToken;
+    setLinkToken(null);
+    if (updateItemId) { setUpdateItemId(null); return; }
+    if (!token) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/plaid/recover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ linkToken: token, memberId }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error);
+      if (body.results.length > 0) {
+        setMessage(
+          (body.results.some((r: { duplicate: boolean }) => r.duplicate) ? "Warning: this institution was already linked. " : "") +
+            "Link was closed after connecting — kept it. " +
+            summarise(body.results.map((r: { sync: SyncResult }) => r.sync))
+        );
+        load();
+        onChange();
+      }
+    } catch (e) {
+      setMessage(`Couldn't check the closed Link session: ${e instanceof Error ? e.message : e}`);
+    } finally {
+      setBusy(false);
+    }
+  }, [linkToken, updateItemId, memberId, load, onChange]);
 
   async function startLink(itemId?: string) {
     if (!itemId && data?.environment === "production") {
