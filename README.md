@@ -41,8 +41,8 @@ You bring your own keys for the parts that need an outside service: [Plaid](http
 Requires [Node.js](https://nodejs.org) 20.12 or later.
 
 ```bash
-git clone https://github.com/D-Bos-02/household-finance.git
-cd household-finance
+git clone https://github.com/D-Bos-02/financedash.git
+cd financedash
 npm install
 cp .env.example .env
 npx prisma migrate dev      # creates the database (dev.db)
