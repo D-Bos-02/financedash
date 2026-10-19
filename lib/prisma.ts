@@ -1,6 +1,8 @@
 import { PrismaClient } from "@/app/generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import path from "path";
+import { DEMO } from "@/lib/demo/mode";
+import { visitorPrisma } from "@/lib/demo/visitor-db";
 
 export function getDbPath(): string {
   const url = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
@@ -18,6 +20,7 @@ function createClient(): PrismaClient {
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-export const prisma = globalForPrisma.prisma ?? createClient();
+// The hosted demo gives each visitor their own database; everywhere else there's the one in DATABASE_URL.
+export const prisma = DEMO ? visitorPrisma() : (globalForPrisma.prisma ?? createClient());
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (!DEMO && process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

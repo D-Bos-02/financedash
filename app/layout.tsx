@@ -7,7 +7,9 @@ import { AutoSync } from "@/components/layout/AutoSync";
 import { SetupWizard } from "@/components/onboarding/SetupWizard";
 import { loadSetup } from "@/lib/household-data";
 import { isLocalHost } from "@/scripts/host.mjs";
-import { DEMO, REPO_URL } from "@/lib/demo/mode";
+import { DEMO } from "@/lib/demo/mode";
+import { VISITOR_TTL_HOURS } from "@/lib/demo/visitor-db";
+import { DemoBanner } from "@/components/layout/DemoBanner";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 
@@ -25,14 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`${geist.variable} h-full`}>
       <body className="h-full flex flex-col bg-zinc-950 text-zinc-100 antialiased font-sans">
-        {DEMO && (
-          <div className="shrink-0 px-4 py-1.5 text-xs text-center text-violet-100 bg-violet-900/60 border-b border-violet-700/60">
-            Demo with made-up data. Your changes are only visible to you and reset after a few hours.{" "}
-            <a href={REPO_URL} target="_blank" rel="noreferrer" className="font-medium underline underline-offset-2 hover:text-white">
-              Get FinanceDash on GitHub →
-            </a>
-          </div>
-        )}
+        {DEMO && <DemoBanner hours={VISITOR_TTL_HOURS} />}
         {exposed && (
           <div role="alert" className="shrink-0 px-4 py-1.5 text-xs text-center text-amber-200 bg-amber-900/60 border-b border-amber-700/60">
             Reachable from your network (HOST={host}) with no login. Anyone on this network can see your finances.
