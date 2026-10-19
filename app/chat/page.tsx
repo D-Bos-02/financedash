@@ -18,11 +18,11 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
     <Chat
       // A different conversation (or a new chat) starts from a fresh state.
       key={current?.id ?? "new"}
-      assistant={setup.ok ? { ok: true, name: describeProvider(setup.provider) } : { ok: false, reason: setup.reason }}
+      assistant={setup.ok ? { ok: true, name: describeProvider(setup.provider), format: transcriptFormat(setup.provider) } : { ok: false, reason: setup.reason }}
       continuable={!current || !setup.ok || current.format === transcriptFormat(setup.provider)}
       autoCheckin={checkin === "1"}
       conversations={conversations.map((c) => ({ ...c, updatedAt: c.updatedAt.toISOString() }))}
-      initial={current ? { id: current.id, messages: JSON.parse(current.messages) } : null}
+      initial={current ? { id: current.id, messages: JSON.parse(current.messages), format: current.format === "openai" ? "openai" : "anthropic" } : null}
     />
   );
 }

@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { PROVIDER_IDS, describeProvider, providerOptions, resolveChatProvider } from "@/lib/chat/provider";
+import { PROVIDER_IDS, describeProvider, providerOptions, resolveChatProvider, transcriptFormat } from "@/lib/chat/provider";
 import { loadSavedChoice } from "@/lib/chat/setup";
 import { parseBody } from "@/lib/household-api";
 
-// What the AI assistant settings show: every provider and whether its key is in .env (never the key),
+// What the chat page's model picker shows: every provider and whether its key is in .env (never the key),
 // the saved choice, and what chat is actually using.
 async function state() {
   const saved = await loadSavedChoice();
@@ -12,7 +12,7 @@ async function state() {
   return {
     providers: providerOptions(process.env),
     saved,
-    current: setup.ok ? { name: describeProvider(setup.provider), source: setup.source } : null,
+    current: setup.ok ? { name: describeProvider(setup.provider), source: setup.source, format: transcriptFormat(setup.provider) } : null,
     reason: setup.ok ? null : setup.reason,
   };
 }

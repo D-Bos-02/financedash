@@ -94,7 +94,7 @@ model FxRate {
 model Settings {
   id         String  @id @default("singleton")
   theme      String  @default("dark")
-  aiProvider String? // chosen in Settings › AI assistant; overrides LLM_PROVIDER. Keys stay in .env.
+  aiProvider String? // picked on the Chat page; overrides LLM_PROVIDER. Keys stay in .env.
   aiModel    String?
 }
 

@@ -1,4 +1,4 @@
-// Server-only: the chat provider in use, from the choice saved in Settings and the keys in .env.
+// Server-only: the chat provider in use, from the choice saved on the Chat page and the keys in .env.
 
 import { prisma } from "@/lib/prisma";
 import { resolveChatProvider, type ProviderSetup, type SavedChoice } from "@/lib/chat/provider";

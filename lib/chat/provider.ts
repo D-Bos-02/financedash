@@ -1,6 +1,6 @@
 // Which AI provider the chat assistant uses. Anthropic is called through its own API; every other provider
 // through the OpenAI-compatible chat completions API that OpenAI, Gemini, OpenRouter, Ollama and LM Studio
-// all offer. Keys always come from .env; the provider and model can also be chosen in Settings, which wins.
+// all offer. Keys always come from .env; the provider and model can also be picked on the Chat page, which wins.
 // Pure, so it can be tested and shown in the UI.
 
 export type ChatProvider =
@@ -9,7 +9,7 @@ export type ChatProvider =
 
 export type ProviderSetup = { ok: true; provider: ChatProvider; source: "settings" | "env" | "auto" } | { ok: false; reason: string };
 
-// The provider and model chosen in Settings › AI assistant (null = not chosen).
+// The provider and model picked on the Chat page (null = not chosen).
 export interface SavedChoice {
   provider: string | null;
   model: string | null;
@@ -42,7 +42,7 @@ type Env = Record<string, string | undefined>;
 const val = (env: Env, key: string) => env[key]?.trim() || undefined;
 
 // Where to choose a model, for messages.
-const CHOOSE = "Choose one in Settings › AI assistant";
+const CHOOSE = "Pick one with the model picker on the Chat page";
 
 // One provider with an optional model; reports what's missing instead of guessing.
 export function buildProvider(env: Env, id: string, model?: string): ProviderSetup {
@@ -64,7 +64,7 @@ export function buildProvider(env: Env, id: string, model?: string): ProviderSet
   return { ok: true, source: "auto", provider: { kind: "openai", id, label: preset.label, model, baseUrl, apiKey } };
 }
 
-// Settings choice first, then LLM_PROVIDER / LLM_MODEL in .env, then the first hosted provider with a key.
+// The Chat page's choice first, then LLM_PROVIDER / LLM_MODEL in .env, then the first hosted provider with a key.
 export function resolveChatProvider(env: Env, saved: SavedChoice = { provider: null, model: null }): ProviderSetup {
   if (saved.provider) {
     const chosen = buildProvider(env, saved.provider, saved.model ?? undefined);
@@ -97,7 +97,7 @@ function needsMissingKey(env: Env, id: string): boolean {
   return Boolean(keyVar && keyVar !== "LLM_API_KEY" && !val(env, keyVar));
 }
 
-// Every provider, with whether it can be used now, for the Settings picker. Never includes keys.
+// Every provider, with whether it can be used now, for the model picker. Never includes keys.
 export interface ProviderOption {
   id: string;
   label: string;

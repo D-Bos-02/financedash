@@ -14,7 +14,7 @@ describe("resolveChatProvider", () => {
 
   it("picks a provider from whichever key is set, but asks for a model for non-Anthropic ones", () => {
     const missing = resolveChatProvider({ OPENAI_API_KEY: "k" });
-    expect(missing.ok || missing.reason).toBe("OpenAI is set up but needs a model. Choose one in Settings › AI assistant.");
+    expect(missing.ok || missing.reason).toBe("OpenAI is set up but needs a model. Pick one with the model picker on the Chat page.");
     expect(resolveChatProvider({ OPENAI_API_KEY: "k", LLM_MODEL: "m" })).toMatchObject({
       ok: true, source: "auto", provider: { kind: "openai", id: "openai", baseUrl: "https://api.openai.com/v1", apiKey: "k", model: "m" },
     });
@@ -22,7 +22,7 @@ describe("resolveChatProvider", () => {
 
   it("names every provider that has a key but no model", () => {
     const r = resolveChatProvider({ OPENAI_API_KEY: "o", GEMINI_API_KEY: "g" });
-    expect(r.ok || r.reason).toBe("OpenAI or Google Gemini are set up but need a model. Choose one in Settings › AI assistant.");
+    expect(r.ok || r.reason).toBe("OpenAI or Google Gemini are set up but need a model. Pick one with the model picker on the Chat page.");
   });
 
   it("uses LLM_PROVIDER over whatever keys happen to be set", () => {
@@ -30,7 +30,7 @@ describe("resolveChatProvider", () => {
     expect(gemini).toMatchObject({ ok: true, source: "env", provider: { id: "gemini", apiKey: "g" } });
   });
 
-  it("uses the choice made in Settings over .env", () => {
+  it("uses the choice made on the Chat page over .env", () => {
     const env = { LLM_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "a", GEMINI_API_KEY: "g" };
     expect(resolveChatProvider(env, { provider: "gemini", model: "flash" })).toMatchObject({
       ok: true, source: "settings", provider: { id: "gemini", model: "flash" },
