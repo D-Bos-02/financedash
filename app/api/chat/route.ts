@@ -10,6 +10,8 @@ import { loadChatSetup } from "@/lib/chat/setup";
 import { runAnthropicChat } from "@/lib/chat/anthropic";
 import { runOpenAIChat, type OAIMessage } from "@/lib/chat/openai";
 import { prisma } from "@/lib/prisma";
+import { DEMO } from "@/lib/demo/mode";
+import { runDemoChat } from "@/lib/demo/chat";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +32,11 @@ async function saveConversation(id: string | null, messages: ChatMessage[], form
 }
 
 export async function POST(request: NextRequest) {
-  const setup = await loadChatSetup();
-  if (!setup.ok) return Response.json({ error: setup.reason }, { status: 503 });
-  const { provider } = setup;
-  const format = transcriptFormat(provider);
+  // The hosted demo has no AI model: it answers set questions with scripted replies.
+  const setup = DEMO ? null : await loadChatSetup();
+  if (setup && !setup.ok) return Response.json({ error: setup.reason }, { status: 503 });
+  const provider = setup?.provider ?? null;
+  const format = provider ? transcriptFormat(provider) : "openai";
 
   const body = await request.json().catch(() => null);
   const history = body?.messages as ChatMessage[] | undefined;
@@ -58,11 +61,13 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       const send = (e: ChatEvent) => controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
       try {
-        const result = provider.kind === "anthropic"
-          ? await runAnthropicChat({ model: provider.model, system: SYSTEM_PROMPT, context, tools, history: history as BetaMessageParam[], send })
-          : await runOpenAIChat({ provider, system: `${SYSTEM_PROMPT}\n\n${context}`, tools, history: history as OAIMessage[], send });
+        const result = !provider
+          ? await runDemoChat({ tools, history: history as OAIMessage[], settings: data.settings, send })
+          : provider.kind === "anthropic"
+            ? await runAnthropicChat({ model: provider.model, system: SYSTEM_PROMPT, context, tools, history: history as BetaMessageParam[], send })
+            : await runOpenAIChat({ provider, system: `${SYSTEM_PROMPT}\n\n${context}`, tools, history: history as OAIMessage[], send });
         // Only Anthropic's prices are known here; other providers show no cost.
-        const costUsd = provider.kind === "anthropic" ? usageCostUsd(result.usage) : null;
+        const costUsd = provider?.kind === "anthropic" ? usageCostUsd(result.usage) : null;
         const id = await saveConversation(conversationId, result.messages, format, costUsd ?? 0);
         send({ type: "done", messages: result.messages, usage: result.usage, costUsd, conversationId: id });
       } catch (err) {

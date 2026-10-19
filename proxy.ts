@@ -4,7 +4,7 @@ import { BASE_PATH, DEMO, VISITOR_COOKIE } from "@/lib/demo/mode";
 // Only does anything in the hosted demo; self-hosted installs pass straight through.
 // The demo has no bank keys and shouldn't write backups or call outside services, and each visitor gets a
 // cookie that picks their own copy of the data.
-const BLOCKED = /^\/api\/(plaid\/|backup$|fx-rates\/refresh$)/;
+const BLOCKED = /^\/api\/(plaid\/|assistant(\/|$)|backup$|fx-rates\/refresh$)/;
 
 export function proxy(request: NextRequest) {
   if (!DEMO) return NextResponse.next();

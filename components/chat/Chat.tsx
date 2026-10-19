@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { ChatEvent, ChatMessage, TranscriptFormat, WEEKLY_CHECKIN_PROMPT } from "@/lib/chat/types";
 import { ModelPicker, type AssistantState } from "./ModelPicker";
 import { Turn, transcriptToTurns } from "@/lib/chat/transcript";
-import { BASE_PATH } from "@/lib/demo/mode";
+import { BASE_PATH, DEMO } from "@/lib/demo/mode";
+import { DEMO_QUESTIONS } from "@/lib/demo/questions";
 
 const TOOL_LABELS: Record<string, string> = {
   get_accounts: "Checking balances",
@@ -24,7 +25,7 @@ const TOOL_LABELS: Record<string, string> = {
   get_weekly_checkin: "Gathering this week's numbers",
 };
 
-const STARTERS = [
+const STARTERS = DEMO ? Object.values(DEMO_QUESTIONS) : [
   "Are we on track for our goals?",
   "What did we spend on eating out last month?",
   "How has our net worth changed this year?",
@@ -162,7 +163,7 @@ export function Chat({
             if (event.conversationId) {
               setConversationId(event.conversationId);
               // Give the chat its own link without reloading the page.
-              window.history.replaceState(null, "", `/chat?id=${event.conversationId}`);
+              window.history.replaceState(null, "", `${BASE_PATH}/chat?id=${event.conversationId}`);
             }
             refreshConversations();
           }
@@ -186,7 +187,7 @@ export function Chat({
   useEffect(() => {
     if (!autoCheckin || !configured || autoStarted.current) return;
     autoStarted.current = true;
-    window.history.replaceState(null, "", "/chat");
+    window.history.replaceState(null, "", `${BASE_PATH}/chat`);
     queueMicrotask(() => send(WEEKLY_CHECKIN_PROMPT));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -219,10 +220,12 @@ export function Chat({
           <div>
             <h1 className="text-xl font-bold text-zinc-100">Chat</h1>
             <p className="text-sm text-zinc-400 mt-0.5">
-              Ask about your money. Answers use your live accounts and plan.
+              {DEMO
+                ? "The demo answers the questions below with scripted replies, using the demo household's live numbers. Your own copy uses the AI provider you choose."
+                : "Ask about your money. Answers use your live accounts and plan."}
             </p>
           </div>
-          {assistant.ok && <ModelPicker label={assistant.name} disabled={busy} onSaved={pickedModel} />}
+          {assistant.ok && !DEMO && <ModelPicker label={assistant.name} disabled={busy} onSaved={pickedModel} />}
           {turns.length > 0 && (
             <Button variant="ghost" size="sm" onClick={() => router.push("/chat")} disabled={busy} className="lg:hidden">New chat</Button>
           )}
