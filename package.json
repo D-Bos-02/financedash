@@ -1,0 +1,49 @@
+{
+  "name": "financedash",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/serve.mjs dev",
+    "build": "next build",
+    "start": "node scripts/serve.mjs start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
+    "@prisma/adapter-better-sqlite3": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "@types/papaparse": "^5.5.2",
+    "better-sqlite3": "^12.10.0",
+    "next": "16.4.2",
+    "papaparse": "^5.5.3",
+    "plaid": "^48.0.0",
+    "prisma": "^7.10.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "react-plaid-link": "^5.0.0",
+    "recharts": "^3.8.1",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.2",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^4.1.12"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "license": "MIT"
+}

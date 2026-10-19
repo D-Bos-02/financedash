@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Account {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  currency    String   @default("USD")
+  institution String?
+  balance     Float    @default(0)
+  balanceMode String   @default("manual")
+  ownerId     String? // null = joint / shared
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  plaidAccountId String?    @unique
+  plaidItemId    String?
+  plaidItem      PlaidItem? @relation(fields: [plaidItemId], references: [id], onDelete: SetNull)
+  owner          Member?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  transactions     Transaction[]
+  balanceSnapshots BalanceSnapshot[]
+  holdings         Holding[]
+  goals            GoalAccount[]
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  accountId   String
+  date        DateTime
+  merchant    String
+  amount      Float
+  currency    String
+  category    String
+  subCategory String?
+  notes       String?
+  isTransfer  Boolean  @default(false)
+  source      String   @default("manual")
+  pending     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  plaidTransactionId String? @unique
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+model BalanceSnapshot {
+  id        String   @id @default(cuid())
+  accountId String
+  date      DateTime
+  balance   Float
+  currency  String
+  createdAt DateTime @default(now())
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+model Budget {
+  id         String   @id @default(cuid())
+  category   String
+  period     String   @default("monthly")
+  amount     Float
+  rollover   Boolean  @default(false)
+  activeFrom DateTime @default(now())
+  createdAt  DateTime @default(now())
+}
+
+model CategoryRule {
+  id          String   @id @default(cuid())
+  pattern     String
+  category    String
+  subCategory String?
+  isTransfer  Boolean  @default(false)
+  priority    Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model FxRate {
+  id           String   @id @default(cuid())
+  fromCurrency String
+  toCurrency   String
+  rate         Float
+  updatedAt    DateTime @updatedAt
+}
+
+// UI preferences only; household facts live in Profile.
+model Settings {
+  id    String @id @default("singleton")
+  theme String @default("dark")
+}
+
+// Who the dashboard is for. Singleton; onboarding runs until onboardedAt is set.
+model Profile {
+  id            String    @id @default("singleton")
+  householdType String    @default("solo") // solo | household
+  baseCurrency  String    @default("USD")
+  timeZone      String    @default("UTC") // IANA name, e.g. Europe/Berlin
+  locale        String    @default("en-US") // number and date formatting
+  onboardedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  name      String
+  color     String // hex, used in charts
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  accounts      Account[]
+  incomeSources IncomeSource[]
+  contributions GoalContribution[]
+}
+
+model IncomeSource {
+  id              String  @id @default(cuid())
+  memberId        String? // null = household income, e.g. rent from a tenant
+  name            String
+  type            String // salary | hourly | freelance | equity_vest | other
+  payFrequency    String // weekly | biweekly | semimonthly | monthly | quarterly | irregular
+  depositPattern  String? // matched (case-insensitive) against deposit merchants on the member's accounts
+  estimateMonthly Float   @default(0) // used until matching deposits exist
+  isActive        Boolean @default(true)
+
+  // Equity vests only
+  ticker        String?
+  sharesPerVest Float?
+  vestMonths    String? // JSON array of months 1-12, e.g. "[1,4,7,10]"
+  taxPct        Float? // % of vest value lost to tax
+  priceFallback Float? // used when the live quote is off or unavailable
+  priceLive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member Member? @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+// Anything being saved for. The house template keeps its own maths; inputs per template live in details.
+model Goal {
+  id             String    @id @default(cuid())
+  name           String
+  template       String // emergency_fund | car | house | wedding | travel | debt_payoff | custom
+  targetAmount   Float
+  deadline       DateTime?
+  priority       Int       @default(0) // lower is funded first
+  plannedMonthly Float? // overrides target / months remaining
+  status         String    @default("active") // active | achieved | archived
+  details        String    @default("{}") // template-specific JSON, so new fields need no migration
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  accounts      GoalAccount[]
+  contributions GoalContribution[]
+}
+
+// An account funding a goal. share lets one account be split across goals, or a joint account between buyers.
+model GoalAccount {
+  goalId    String
+  accountId String
+  share     Float  @default(1) // fraction of the balance counted, 0-1
+
+  goal    Goal    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@id([goalId, accountId])
+}
+
+// One-off money toward a goal: gifts, bonuses, a trade-in.
+model GoalContribution {
+  id           String    @id @default(cuid())
+  goalId       String
+  memberId     String?
+  label        String
+  amount       Float
+  expectedDate DateTime?
+  received     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+
+  goal   Goal    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  member Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+}
+
+model PlaidItem {
+  id              String    @id @default(cuid())
+  itemId          String    @unique
+  accessToken     String // AES-256-GCM encrypted; empty once removed
+  environment     String
+  institutionId   String?
+  institutionName String?
+  cursor          String?
+  status          String    @default("ok") // ok | login_required | error | removed
+  errorCode       String?
+  lastSyncedAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  accounts Account[]
+}
+
+// Saved inputs for the planner page, stored as JSON so new fields need no migration.
+model PlannerState {
+  id        String   @id @default("singleton")
+  data      String   @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
+// Investment positions from Plaid Investments, replaced on each sync. Cost basis drives the tax-on-selling estimate.
+model Holding {
+  id        String   @id @default(cuid())
+  accountId String
+  name      String
+  ticker    String?
+  type      String? // equity, etf, mutual fund, cash, ...
+  quantity  Float
+  value     Float
+  costBasis Float?
+  currency  String   @default("USD")
+  updatedAt DateTime @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+// Saved chat assistant conversations. messages is the full API transcript (JSON), so a chat can be continued.
+model ChatConversation {
+  id        String   @id @default(cuid())
+  title     String
+  messages  String
+  format    String   @default("anthropic") // anthropic | openai: the transcript format, set by the provider that wrote it
+  costUsd   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
