@@ -91,8 +91,8 @@ export function PlaidSetupGuide({ defaultOpen = false, onCheck }: { defaultOpen?
             <Step n={2} title="Choose test banks or your real bank, then copy your keys">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" role="radiogroup" aria-label="Plaid environment">
                 {([
-                  ["sandbox", "Sandbox: test banks", "Works straight away. Try FinanceDash with Plaid's made-up banks and data."],
-                  ["production", "Production: my real bank", "Needs Plaid to approve your account first. Each bank you connect uses one of the free trial's few connections, for good."],
+                  ["sandbox", "Sandbox: test banks (start here)", "Works straight away and doesn't use up any of the trial's real connections. Try FinanceDash with Plaid's made-up banks and data first."],
+                  ["production", "Production: my real bank", "Needs Plaid's approval first. The free trial allows 10 bank connections in total, and a connection can't be removed to free up its slot."],
                 ] as const).map(([value, title, note]) => (
                   <button
                     key={value}
@@ -153,14 +153,20 @@ export function PlaidSetupGuide({ defaultOpen = false, onCheck }: { defaultOpen?
                   <code className="text-zinc-300">user_good</code> / <code className="text-zinc-300">pass_good</code>.
                 </p>
                 <p>
+                  <span className="text-zinc-200">Why Sandbox first:</span> Plaid&apos;s free trial allows 10 real bank connections, ever. Removing
+                  one doesn&apos;t give its slot back. Each login to a bank counts as one connection, even if it brings in several accounts.
+                  Get comfortable in Sandbox, which doesn&apos;t count toward that limit, before using up real ones.
+                </p>
+                <p>
                   <span className="text-zinc-200">Moving to your real bank later:</span> request Production access in the Plaid dashboard. Once it&apos;s
                   approved, come back here, choose Production, and swap in the new lines.
                 </p>
               </>
             ) : (
               <p>
-                <span className="text-zinc-200">Before you connect:</span> Plaid&apos;s free trial covers only a small number of real bank connections,
-                and removing one doesn&apos;t give it back. Connect each bank once, and use Reconnect (not a new connection) if a login stops working.
+                <span className="text-zinc-200">Before you connect:</span> Plaid&apos;s free trial allows 10 bank connections in total, and removing one
+                doesn&apos;t give its slot back. Each login to a bank counts once, however many accounts it brings in. If you haven&apos;t yet, try
+                Sandbox first. Connect each bank only once, and use Reconnect (not a new connection) if a login stops working.
               </p>
             )}
           </div>

@@ -213,7 +213,8 @@ export function PlaidConnections({ onChange, members, setupOpen = false }: { onC
         <p className="text-xs text-zinc-500 mb-3">
           Using Plaid&apos;s test banks (sign in with <code className="text-zinc-400">user_good</code> / <code className="text-zinc-400">pass_good</code>).
           To connect your real bank, get Production access from Plaid, then set <code className="text-zinc-400">PLAID_ENV=production</code> and
-          your Production secret in <code className="text-zinc-400">.env</code>.
+          your Production secret in <code className="text-zinc-400">.env</code>. The free trial allows 10 real connections in total, and removing
+          one doesn&apos;t free its slot, so connect each bank once.
         </p>
       )}
 
