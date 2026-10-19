@@ -10,6 +10,8 @@ export interface OAIToolCall {
   id: string;
   type: "function";
   function: { name: string; arguments: string };
+  // Provider data that must be sent back unchanged, e.g. Gemini's thought_signature under extra_content.google.
+  extra_content?: unknown;
 }
 
 export type OAIMessage =
@@ -49,7 +51,10 @@ export const emptyTurn = (): Turn => ({ text: "", calls: [], finish: null, usage
 
 interface StreamChunk {
   choices?: {
-    delta?: { content?: string | null; tool_calls?: { index?: number; id?: string; function?: { name?: string; arguments?: string } }[] };
+    delta?: {
+      content?: string | null;
+      tool_calls?: { index?: number; id?: string; function?: { name?: string; arguments?: string }; extra_content?: unknown }[];
+    };
     finish_reason?: string | null;
   }[];
   usage?: Turn["usage"];
@@ -71,6 +76,7 @@ export function applyChunk(turn: Turn, chunk: StreamChunk): { text: string; newT
       call = turn.calls[index] = { id: "", type: "function", function: { name: "", arguments: "" } };
     }
     if (d.id) call.id = d.id;
+    if (d.extra_content !== undefined) call.extra_content = d.extra_content;
     // The name arrives once, in the call's first piece.
     if (d.function?.name && !call.function.name) {
       call.function.name = d.function.name;
@@ -106,7 +112,10 @@ export async function runToolCall(tools: BetaRunnableTool[], call: OAIToolCall):
 
 // --- Loop -----------------------------------------------------------------------------------------
 
-async function request(p: Extract<ChatProvider, { kind: "openai" }>, body: object, withUsage: boolean): Promise<Response> {
+const RETRY_DELAYS_MS = [1500, 4000];
+
+// "Overloaded, try later" is common and brief, so it's retried a couple of times before giving up.
+async function request(p: Extract<ChatProvider, { kind: "openai" }>, body: object, withUsage: boolean, attempt = 0): Promise<Response> {
   let res: Response;
   try {
     res = await fetch(`${p.baseUrl}/chat/completions`, {
@@ -118,12 +127,26 @@ async function request(p: Extract<ChatProvider, { kind: "openai" }>, body: objec
     throw new ProviderError(`Couldn't reach ${p.label} at ${p.baseUrl}. ${p.baseUrl.includes("127.0.0.1") ? "Is it running?" : "Check LLM_BASE_URL and your connection."}`);
   }
   if (res.ok) return res;
-  const detail = (await res.text().catch(() => "")).slice(0, 300);
+  if ((res.status === 503 || res.status === 529) && attempt < RETRY_DELAYS_MS.length) {
+    await res.body?.cancel().catch(() => {});
+    await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt]));
+    return request(p, body, withUsage, attempt + 1);
+  }
+  const raw = await res.text().catch(() => "");
+  // Most providers return { error: { message } } (Gemini sometimes wraps it in an array).
+  let detail = raw.slice(0, 300);
+  try {
+    const body = JSON.parse(raw);
+    detail = String((Array.isArray(body) ? body[0] : body)?.error?.message ?? detail).slice(0, 300);
+  } catch { /* not JSON */ }
   // Some servers don't accept stream_options; ask again without it (usage just isn't reported).
-  if (withUsage && res.status === 400 && /stream_options/i.test(detail)) return request(p, body, false);
+  if (withUsage && res.status === 400 && /stream_options/i.test(detail)) return request(p, body, false, attempt);
   if (res.status === 401 || res.status === 403) throw new ProviderError(`${p.label} rejected the API key. Check it in .env.`);
   if (res.status === 404) throw new ProviderError(`${p.label} doesn't know model "${p.model}" (or the address is wrong). Check LLM_MODEL and LLM_BASE_URL.`);
+  // 429 also means "out of credit" (OpenAI) or "quota exhausted" (Gemini), where waiting won't help.
+  if (res.status === 429 && /quota|credit|billing|exhausted/i.test(raw)) throw new ProviderError(`${p.label} says your account is out of credit or quota: ${detail}`);
   if (res.status === 429) throw new ProviderError(`Rate limited by ${p.label}. Try again in a minute.`);
+  if (res.status === 503 || res.status === 529) throw new ProviderError(`${p.label} is overloaded right now. Try again in a few minutes.`);
   throw new ProviderError(`${p.label} error ${res.status}: ${detail || res.statusText}`);
 }
 

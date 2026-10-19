@@ -27,6 +27,15 @@ describe("applyChunk", () => {
   });
 });
 
+describe("applyChunk with provider extras", () => {
+  it("keeps data a provider attaches to a tool call, such as Gemini's thought_signature", () => {
+    const turn = emptyTurn();
+    const extra = { google: { thought_signature: "sig123" } };
+    applyChunk(turn, { choices: [{ delta: { tool_calls: [{ id: "call_1", function: { name: "get_goals", arguments: "{}" }, extra_content: extra }] }, finish_reason: "stop" }] });
+    expect(turn.calls[0]).toEqual({ id: "call_1", type: "function", function: { name: "get_goals", arguments: "{}" }, extra_content: extra });
+  });
+});
+
 describe("tools", () => {
   const tool = betaZodTool({
     name: "add",
