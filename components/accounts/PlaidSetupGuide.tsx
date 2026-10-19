@@ -80,8 +80,8 @@ export function PlaidSetupGuide({ defaultOpen = false, onCheck }: { defaultOpen?
 
       {open && (
         <>
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-xs text-zinc-400 space-y-1.5">
-            {env === "sandbox" ? (
+          {env === "sandbox" ? (
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-xs text-zinc-400 space-y-1.5">
               <>
                 <p>
                   <span className="text-zinc-200">Signing in to a test bank:</span> pick any bank in the Plaid window and use{" "}
@@ -97,14 +97,25 @@ export function PlaidSetupGuide({ defaultOpen = false, onCheck }: { defaultOpen?
                   approved, come back here, choose Production, and swap in the new lines.
                 </p>
               </>
-            ) : (
-              <p>
-                <span className="text-zinc-200">Before you connect:</span> Plaid&apos;s free trial allows 10 bank connections in total, and removing one
-                doesn&apos;t give its slot back. Each login to a bank counts once, however many accounts it brings in. If you haven&apos;t yet, try
-                Sandbox first. Connect each bank only once, and use Reconnect (not a new connection) if a login stops working.
-              </p>
-            )}
-          </div>
+            </div>
+          ) : (
+            // Production connections are permanent and limited, so this is a warning, not a note.
+            <div role="alert" className="flex gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3">
+              <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0 text-amber-400 mt-0.5">
+                <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
+              </svg>
+              <div className="min-w-0 space-y-1.5">
+                <p className="text-sm font-semibold text-amber-200">Real bank connections are limited and permanent</p>
+                <ul className="list-disc pl-4 space-y-1 text-xs text-amber-100/90">
+                  <li>Plaid&apos;s free trial allows <strong className="text-amber-50">10 bank connections in total</strong>.</li>
+                  <li><strong className="text-amber-50">Removing a connection doesn&apos;t give its slot back.</strong></li>
+                  <li>Each login to a bank counts once, however many accounts it brings in.</li>
+                  <li>Connect each bank only once. If a login stops working, use <strong className="text-amber-50">Reconnect</strong>, not a new connection.</li>
+                  <li>If you haven&apos;t yet, try <strong className="text-amber-50">Sandbox</strong> first: it doesn&apos;t count toward the limit.</li>
+                </ul>
+              </div>
+            </div>
+          )}
 
           <ol className="space-y-5">
             <Step n={1} title="Create a free Plaid account">
