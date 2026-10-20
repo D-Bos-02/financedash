@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BASE_PATH, REPO_URL } from "@/lib/demo/mode";
 
-const link = "font-medium underline underline-offset-2 hover:text-white disabled:opacity-60";
+const button =
+  "rounded-md border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium text-white hover:bg-white/20 disabled:opacity-60 transition-colors";
 
 // The hosted demo's top bar: what this is, a way to start over, and where to get the app.
 export function DemoBanner({ hours }: { hours: number }) {
@@ -24,12 +25,20 @@ export function DemoBanner({ hours }: { hours: number }) {
   }
 
   return (
-    <div className="shrink-0 px-4 py-1.5 text-xs text-center text-violet-100 bg-violet-900/60 border-b border-violet-700/60">
-      Demo with made-up data. Your changes are only visible to you, and are cleared {hours} hours after your last visit.{" "}
-      <span className="inline-flex flex-wrap justify-center gap-x-3">
-        <button type="button" className={link} disabled={busy} onClick={() => startOver(false)}>Reset</button>
-        <button type="button" className={link} disabled={busy} onClick={() => startOver(true)}>Try setup from scratch</button>
-        <a href={REPO_URL} target="_blank" rel="noreferrer" className={link}>Get FinanceDash on GitHub →</a>
+    <div className="shrink-0 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-4 py-3 bg-gradient-to-r from-violet-700 to-fuchsia-700 text-white shadow-lg">
+      <p className="flex items-center gap-2.5 text-sm">
+        <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-bold tracking-wider text-violet-700">DEMO</span>
+        <span>
+          <strong className="font-semibold">You&apos;re trying FinanceDash with made-up data.</strong>{" "}
+          <span className="text-white/85">Changes are only visible to you, and are cleared {hours} hours after your last visit.</span>
+        </span>
+      </p>
+      <span className="flex flex-wrap justify-center gap-2">
+        <button type="button" className={button} disabled={busy} onClick={() => startOver(false)}>Reset</button>
+        <button type="button" className={button} disabled={busy} onClick={() => startOver(true)}>Try setup from scratch</button>
+        <a href={REPO_URL} target="_blank" rel="noreferrer" className="rounded-md bg-white px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-50 transition-colors">
+          Get it on GitHub →
+        </a>
       </span>
     </div>
   );
