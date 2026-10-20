@@ -17,11 +17,14 @@ export function formatCurrency(
   return new Intl.NumberFormat("en-US", opts).format(amount);
 }
 
+// Transaction dates and chart months are calendar dates stored at UTC midnight, so they're shown in UTC.
+// In the viewer's own time zone they'd land a day (or month) early anywhere west of UTC.
 export function formatDate(date: string | Date): string {
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   }).format(new Date(date));
 }
 
@@ -29,6 +32,7 @@ export function formatMonth(date: string | Date): string {
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",
+    timeZone: "UTC",
   }).format(new Date(date));
 }
 
